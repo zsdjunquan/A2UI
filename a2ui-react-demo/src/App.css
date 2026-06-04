@@ -329,6 +329,25 @@ input {
   word-break: break-word;
 }
 
+.medical-chat .copilotkit-skeleton,
+.medical-chat [class*="skeleton"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.medical-chat [class*="Activity"],
+.medical-chat [class*="activity"] {
+  max-width: 100% !important;
+}
+
+.medical-chat [class*="Activity"] + [class*="Activity"],
+.medical-chat [class*="activity"] + [class*="activity"] {
+  margin-top: 8px !important;
+}
+
 .medical-chat p,
 .medical-chat li,
 .medical-chat blockquote,
@@ -431,6 +450,14 @@ input {
   background: transparent !important;
   box-shadow: none;
   overflow: visible;
+}
+
+.medical-chat .copilotKitAssistantMessage:has(.copilotkit-skeleton) > div:first-child,
+.medical-chat .copilotKitAssistantMessage:has([class*="skeleton"]) > div:first-child {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .medical-chat .copilotKitInputContainer {

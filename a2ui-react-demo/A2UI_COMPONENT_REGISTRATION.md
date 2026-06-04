@@ -9,13 +9,7 @@
 - `MedicalMetricChart`：医疗指标可视化组件，适合实验室指标、生命体征、风险评分等数值型内容。
 - `NodeAnswerCard`：节点回答框组件，适合展示分析节点、工作流节点、推理步骤的结论、依据、置信度和下一步建议。
 
-下面这些文件目前只是普通 React 组件或旧模板代码，尚未作为 A2UI 自定义组件注册：
-
-- `MedicalAnswerCard.tsx`
-- `MedicalReportTemplate.tsx`
-- `MissingPatientInfoForm.tsx`
-
-原因是它们现在使用的是 `data` prop 和本地 `types.ts` 数据结构，而不是 `catalogDefinitions.ts` 中的 Zod schema + `PropsOf` 形态。要注册它们，需要先给它们补 schema，再改成接收 `{ props }` 或做一层适配组件。
+未注册的旧模板组件已经删除，当前目录只保留实际注册和渲染链路中使用的组件。
 
 ## 注册流程图
 
@@ -123,9 +117,8 @@ export const medicalCatalog = createCatalog(
 - 只写了 React 组件，但没有写 `catalogDefinitions.ts` schema：模型不知道这个组件存在。
 - schema 写了组件，但 `medicalCatalog.tsx` 没有 renderer 映射：前端收到组件树后找不到组件渲染。
 - 只传给 `createA2UIMessageRenderer`，没有传给 `CopilotKit a2ui`：前端会渲染，但模型不知道能生成自定义组件。
-- 后端提示词仍要求 Basic Catalog：模型会倾向于不用自定义组件。
+- 后端 graph 节点仍指向 Basic Catalog：模型会倾向于不用自定义组件。
 - `createSurface.catalogId` 使用了 Basic Catalog 或错误 ID：自定义组件不会命中当前 catalog。
-- 旧组件如果仍然接收 `data` prop，不能直接写成 `({ props }) => <OldComponent props={props} />`，需要改组件 prop 或写适配层。
 
 ## 当前项目结论
 
@@ -135,6 +128,6 @@ export const medicalCatalog = createCatalog(
 - 有 renderer 映射：`src/a2ui/medicalCatalog.tsx`
 - 有统一 catalogId：`MEDICAL_CATALOG_ID`
 - `App.tsx` 同时传给了 `CopilotKit a2ui` 和 `createA2UIMessageRenderer`
-- 后端提示词已经要求优先使用客户端自定义 catalog，并指定自定义 catalogId
+- 后端 graph 流程已经要求使用客户端自定义 catalog，并指定自定义 catalogId
 
-目前未注册的旧模板不建议直接取消注释注册，应该先改造成标准 A2UI catalog 组件。
+后续新增组件时，建议直接按 `catalogDefinitions.ts` schema + `PropsOf` + `medicalCatalog.tsx` renderer 映射的方式实现。

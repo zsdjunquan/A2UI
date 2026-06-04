@@ -15,6 +15,171 @@ import type { medicalCatalogDefinitions } from "./catalogDefinitions";
 type MedicalMetricChartProps = PropsOf<typeof medicalCatalogDefinitions, "MedicalMetricChart">;
 type Metric = MedicalMetricChartProps["metrics"][number];
 
+const styles = `
+.medical-visual-card,
+.medical-visual-card * {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.medical-visual-card {
+  width: 100%;
+  min-width: 0;
+  margin: 8px 0;
+  padding: 20px;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  border: 1px solid #dce8ee;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(26, 48, 73, 0.08);
+  color: #172334;
+}
+
+.medical-visual-card .medical-visual-header,
+.medical-visual-card .medical-visual-title,
+.medical-visual-card .medical-metric-item-top,
+.medical-visual-card .medical-status-chip {
+  display: flex;
+  align-items: center;
+}
+
+.medical-visual-card .medical-visual-header,
+.medical-visual-card .medical-metric-item-top {
+  justify-content: space-between;
+}
+
+.medical-visual-card .medical-visual-header {
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.medical-visual-card .medical-visual-title {
+  gap: 9px;
+  color: #087f8c;
+}
+
+.medical-visual-card .medical-visual-title h3 {
+  margin: 0;
+  color: #172334;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.medical-visual-card .medical-visual-header p {
+  margin: 6px 0 0;
+  color: #718195;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.medical-visual-card .medical-risk-score {
+  flex: 0 0 auto;
+  min-width: 74px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #e9f8f7, #f6fcfc);
+  border: 1px solid #d4efeb;
+  text-align: center;
+}
+
+.medical-visual-card .medical-risk-score strong {
+  display: block;
+  color: #087f8c;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.medical-visual-card .medical-risk-score span {
+  display: block;
+  margin-top: 5px;
+  color: #6c7e90;
+  font-size: 11px;
+}
+
+.medical-visual-card .medical-chart-area {
+  margin: 4px -4px 14px;
+  padding: 6px 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fbfdfd, #f7fbfc);
+}
+
+.medical-visual-card .medical-chart-area .recharts-responsive-container > div {
+  width: 100% !important;
+}
+
+.medical-visual-card .medical-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.medical-visual-card .medical-metric-item {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid #e7eff3;
+  border-radius: 14px;
+  background: #fbfdfd;
+}
+
+.medical-visual-card .medical-metric-item-top {
+  gap: 8px;
+  color: #607184;
+  font-size: 12px;
+}
+
+.medical-visual-card .medical-status-chip {
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.medical-visual-card .medical-metric-item > strong {
+  display: block;
+  margin-top: 8px;
+  color: #172334;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.medical-visual-card .medical-metric-item small {
+  display: block;
+  margin-top: 6px;
+  color: #8a99a9;
+  font-size: 11px;
+}
+
+.medical-visual-card .medical-metric-item p {
+  margin: 6px 0 0;
+  color: #68798c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 680px) {
+  .medical-visual-card .medical-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .medical-visual-card {
+    padding: 16px;
+  }
+
+  .medical-visual-card .medical-visual-header {
+    align-items: flex-start;
+  }
+
+  .medical-visual-card .medical-risk-score {
+    min-width: 66px;
+  }
+}
+`;
+
 const statusMeta = {
   normal: { color: "#0f9f78", soft: "#e8f8f2", label: "正常", icon: CheckCircle2 },
   warning: { color: "#d99416", soft: "#fff7df", label: "需关注", icon: AlertTriangle },
@@ -56,6 +221,7 @@ export function MedicalMetricChart({ props }: { props: MedicalMetricChartProps }
 
   return (
     <section className="medical-visual-card" aria-label={props.title}>
+      <style>{styles}</style>
       <div className="medical-visual-header">
         <div>
           <div className="medical-visual-title">
