@@ -1,0 +1,39 @@
+# 依赖与构建产物
+node_modules/
+dist/
+dist-ssr/
+.wireit/
+
+# 环境变量与本地配置
+.env
+*.local
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# 编辑器与系统文件
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 压缩包和临时备份
+*.zip
+
+# 当前环境里用于绕开受限 .git 写入的临时 Git 元数据目录
+.codexgit/
+.git/
+.repo_meta/
+repo-meta/
+
+# 当前任务无关的本地实验仓库
+a2ui-playground/
