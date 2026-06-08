@@ -16,11 +16,12 @@ const A2UIRenderer = createA2UIMessageRenderer({
   // 渲染阶段：当后端返回 MedicalMetricChart / NodeAnswerCard 时，用 medicalCatalog 找到对应 React 组件。
   catalog: medicalCatalog,
 });
+//http://10.17.1.244:12307
 
 export default function App() {
   return (
     <CopilotKit
-      runtimeUrl="http://localhost:8080/api/copilotkit"
+      runtimeUrl="/api/copilot-agent"
       // 生成阶段：把 catalog schema 注入给模型。少了这一步，模型通常只会生成 Basic Catalog 组件。
       a2ui={{ catalog: medicalCatalog }}
       renderActivityMessages={[A2UIRenderer]}
