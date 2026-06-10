@@ -234,14 +234,24 @@ input {
 }
 
 .medical-chat .copilotKitMessagesContainer {
-  width: min(100%, 920px);
+  width: min(100%, 1040px);
   min-width: 0;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   overflow-x: hidden;
+}
+
+/* CopilotKit v2 的滚动内容里还有一层 cpk:max-w-3xl，会把消息列限制在约 768px。
+   项目外层已经控制了聊天宽度，这里把内部最大宽度放开，避免回复和 tool 结果只占左半边。 */
+.medical-chat [data-testid="copilot-scroll-content"] > div {
+  width: min(100%, 1040px) !important;
+  max-width: 1040px !important;
+  min-width: 0;
+  margin: 0 auto !important;
+  padding: 0 24px;
 }
 
 .medical-chat .copilotKitMessage {
@@ -265,6 +275,7 @@ input {
   max-width: 100% !important;
   display: flex;
   overflow: visible !important;
+  padding-top: 0 !important;
 }
 
 .medical-chat .copilotKitUserMessage {
@@ -273,12 +284,16 @@ input {
 
 .medical-chat .copilotKitAssistantMessage {
   justify-content: flex-start;
+  align-items: stretch !important;
 }
 
 .medical-chat .copilotKitUserMessage > div:first-child {
   width: auto;
   max-width: min(680px, 78%) !important;
-  padding: 11px 15px;
+  min-height: 0;
+  padding: 10px 15px;
+  display: inline-flex;
+  align-items: center;
   border-radius: 18px 18px 6px 18px;
   background: linear-gradient(135deg, #e8f8f6, #f1fbfa);
   border: 1px solid #d4efeb;
@@ -303,8 +318,22 @@ input {
   background: transparent !important;
 }
 
+/* CopilotKit 的 tool/assistant 内容内部会带 cpk:w-fit、cpk:max-w-* 等宽度类。
+   这里统一压成全宽，避免回复卡片只占左半边，右侧留下大空白。 */
+.medical-chat .copilotKitAssistantMessage > *,
+.medical-chat .copilotKitAssistantMessage [class*="ToolCalls"],
+.medical-chat .copilotKitAssistantMessage [class*="toolCalls"],
+.medical-chat .copilotKitAssistantMessage [class*="cpk:w-fit"],
+.medical-chat .copilotKitAssistantMessage [class*="cpk:max-w"],
+.medical-chat .copilotKitAssistantMessage [class*="cpk:inline-block"] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 .medical-chat .copilotKitAssistantMessage > div:first-child {
-  padding: 15px 18px !important;
+  min-height: 0;
+  padding: 12px 18px !important;
+  display: block;
   border: 1px solid #e3edf2 !important;
   border-radius: 18px 18px 18px 6px;
   background: #ffffff !important;
@@ -315,6 +344,28 @@ input {
   word-break: break-word;
 }
 
+/* Tool result 里常出现 Markdown 表格或摘要卡片；强制内部内容跟随外层消息宽度。 */
+.medical-chat .copilotKitAssistantMessage > div:first-child > *,
+.medical-chat .copilotKitAssistantMessage [class*="prose"] > *,
+.medical-chat .copilotKitAssistantMessage table,
+.medical-chat .copilotKitAssistantMessage pre {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+/* CopilotKit 的 Markdown/prose 子节点会自带首尾 margin，导致单行回复看起来不垂直居中。 */
+.medical-chat .copilotKitUserMessage > div:first-child > :first-child,
+.medical-chat .copilotKitAssistantMessage > div:first-child > :first-child,
+.medical-chat .copilotKitAssistantMessage [class*="prose"] > :first-child {
+  margin-top: 0 !important;
+}
+
+.medical-chat .copilotKitUserMessage > div:first-child > :last-child,
+.medical-chat .copilotKitAssistantMessage > div:first-child > :last-child,
+.medical-chat .copilotKitAssistantMessage [class*="prose"] > :last-child {
+  margin-bottom: 0 !important;
+}
+
 .medical-chat .copilotKitAssistantMessage > div:first-child:empty,
 .medical-chat .copilotKitAssistantMessage > div:first-child:has(> div:empty) {
   display: none;
@@ -323,10 +374,23 @@ input {
 .medical-chat .copilotKitAssistantMessage .cpk\:prose,
 .medical-chat .copilotKitUserMessage .cpk\:prose,
 .medical-chat [class*="prose"] {
+  width: 100% !important;
   max-width: 100% !important;
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* prose 内部的段落、列表、分割线和表格要跟随消息卡片全宽，不能保持内容宽度。 */
+.medical-chat .copilotKitAssistantMessage .cpk\:prose > *,
+.medical-chat .copilotKitAssistantMessage [class*="prose"] > * {
+  width: 100%;
+  max-width: 100% !important;
+}
+
+.medical-chat .copilotKitAssistantMessage .cpk\:prose p,
+.medical-chat .copilotKitAssistantMessage [class*="prose"] p {
+  margin: 0;
 }
 
 .medical-chat .copilotkit-skeleton,

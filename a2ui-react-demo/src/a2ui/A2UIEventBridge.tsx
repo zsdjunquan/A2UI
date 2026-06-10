@@ -4,11 +4,15 @@ import { useAgent } from "@copilotkit/react-core/v2";
 
 type A2UIWorkflowEventName =
   | "patient-info-submit"
+  | "basic-info-submit"
+  | "inspection-indicators-submit"
   | "blood-gas-metrics-submit"
   | "blood-gas-data-confirm";
 
 const workflowEventLabels: Record<A2UIWorkflowEventName, string> = {
   "patient-info-submit": "患者基础信息已提交",
+  "basic-info-submit": "基本信息表单已提交",
+  "inspection-indicators-submit": "检测指标已提交",
   "blood-gas-metrics-submit": "血气指标补全已提交",
   "blood-gas-data-confirm": "血气数据已确认",
 };
@@ -29,6 +33,35 @@ function hasValidPatientInfo(detail: unknown) {
     hasText("age" in value ? value.age : undefined) &&
     hasText("ageUnit" in value ? value.ageUnit : undefined) &&
     hasText("department" in value ? value.department : undefined)
+  );
+}
+
+function hasValidBasicInfo(detail: unknown) {
+  if (!detail || typeof detail !== "object") return false;
+
+  const value = "value" in detail ? detail.value : undefined;
+  if (!value || typeof value !== "object") return false;
+
+  return (
+    hasText("medicalRecordNo" in value ? value.medicalRecordNo : undefined) &&
+    hasText("department" in value ? value.department : undefined) &&
+    hasText("name" in value ? value.name : undefined) &&
+    hasText("gender" in value ? value.gender : undefined)
+  );
+}
+
+function hasValidInspectionIndicators(detail: unknown) {
+  if (!detail || typeof detail !== "object") return false;
+
+  const values = "values" in detail ? detail.values : undefined;
+  if (!Array.isArray(values)) return false;
+
+  return values.some(
+    (item) =>
+      item &&
+      typeof item === "object" &&
+      hasText("project" in item ? item.project : undefined) &&
+      hasText("result" in item ? item.result : undefined),
   );
 }
 
@@ -61,6 +94,10 @@ function isValidWorkflowEvent(type: A2UIWorkflowEventName, detail: unknown) {
   switch (type) {
     case "patient-info-submit":
       return hasValidPatientInfo(detail);
+    case "basic-info-submit":
+      return hasValidBasicInfo(detail);
+    case "inspection-indicators-submit":
+      return hasValidInspectionIndicators(detail);
     case "blood-gas-metrics-submit":
       return hasValidBloodGasMetrics(detail);
     case "blood-gas-data-confirm":

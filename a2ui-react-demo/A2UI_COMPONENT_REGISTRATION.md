@@ -4,10 +4,16 @@
 
 ## 当前注册状态
 
-当前真正注册进 A2UI catalog 的自定义组件只有两个：
+当前真正注册进 A2UI catalog 的自定义组件包括：
 
 - `MedicalMetricChart`：医疗指标可视化组件，适合实验室指标、生命体征、风险评分等数值型内容。
 - `NodeAnswerCard`：节点回答框组件，适合展示分析节点、工作流节点、推理步骤的结论、依据、置信度和下一步建议。
+- `PatientInfoForm`：患者基础信息补充表单，提交后触发 `patient-info-submit`。
+- `BasicInfoForm`：由 Vue3 `BasicInfoForm.vue` 转换而来的 React A2UI 表单，提交后触发 `basic-info-submit`。
+- `InspectionIndicators`：由 Vue3 `InspectionIndicators.vue` 转换而来的 React A2UI 检测指标表格，提交后触发 `inspection-indicators-submit`。
+- `BloodGasMetricDynamicForm`：血气分析指标动态补全表单，提交后触发 `blood-gas-metrics-submit`。
+- `BloodGasDataConfirmCard`：血气数据确认卡片，确认后触发 `blood-gas-data-confirm`。
+- `BloodGasAnalysisReportCard`：血气分析报告卡片。
 
 未注册的旧模板组件已经删除，当前目录只保留实际注册和渲染链路中使用的组件。
 
@@ -110,6 +116,37 @@ export const medicalCatalog = createCatalog(
 
 ```txt
 当回答需要展示风险随时间变化、复查趋势或病程节点时，优先使用 RiskTimeline。
+```
+
+## Agent 输出 JSON 示例
+
+`BasicInfoForm`：
+
+```json
+{
+  "component": "BasicInfoForm",
+  "props": {
+    "title": "基本信息",
+    "submitText": "提交",
+    "departmentOptions": [
+      { "label": "呼吸内科", "value": "呼吸内科" },
+      { "label": "检验科", "value": "检验科" }
+    ]
+  }
+}
+```
+
+`InspectionIndicators`：
+
+```json
+{
+  "component": "InspectionIndicators",
+  "props": {
+    "title": "检测指标",
+    "submitText": "提交",
+    "fields": ["tat", "pic", "pt", "aptt"]
+  }
+}
 ```
 
 ## 当前容易出错的点

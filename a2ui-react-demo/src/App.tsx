@@ -2,6 +2,7 @@ import { CopilotChat, CopilotKit, createA2UIMessageRenderer } from "@copilotkit/
 import { defaultTheme } from "@copilotkit/a2ui-renderer";
 import "@copilotkit/react-core/v2/styles.css";
 import { A2UIEventBridge } from "./a2ui/A2UIEventBridge";
+import { A2UIFrontendToolModals } from "./a2ui/A2UIFrontendToolModals";
 import { medicalCatalog } from "./a2ui/medicalCatalog";
 import "./App.css";
 
@@ -26,6 +27,7 @@ export default function App() {
       a2ui={{ catalog: medicalCatalog }}
       renderActivityMessages={[A2UIRenderer]}
     >
+      <A2UIFrontendToolModals />
       <A2UIEventBridge />
       <main className="app-shell">
         <section className="hospital-chat-card" aria-label="医疗 AI 报告助手">

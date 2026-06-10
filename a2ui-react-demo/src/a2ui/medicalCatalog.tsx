@@ -6,6 +6,10 @@ import { BloodGasAnalysisReportCard } from "./BloodGasAnalysisReportCard";
 import { BloodGasDataConfirmCard } from "./BloodGasDataConfirmCard";
 import { BloodGasMetricDynamicForm } from "./BloodGasMetricDynamicForm";
 import { PatientInfoForm } from "./PatientInfoForm";
+import { BasicInfoForm } from "./BasicInfoForm";
+import { BasicInfoSummaryCard } from "./BasicInfoSummaryCard";
+import { InspectionIndicators } from "./InspectionIndicators";
+import { InspectionIndicatorsSummaryCard } from "./InspectionIndicatorsSummaryCard";
 
 export const MEDICAL_CATALOG_ID = "https://example.local/a2ui/medical-catalog/v1";
 
@@ -22,6 +26,12 @@ export const medicalCatalog = createCatalog(
     BloodGasDataConfirmCard: ({ props }) => <BloodGasDataConfirmCard props={props} />,
     BloodGasMetricDynamicForm: ({ props }) => <BloodGasMetricDynamicForm props={props} />,
     PatientInfoForm: ({ props }) => <PatientInfoForm props={props} />,
+    BasicInfoForm: ({ props }) => <BasicInfoForm props={props} />,
+    BasicInfoSummaryCard: ({ props }) => <BasicInfoSummaryCard props={props} />,
+    InspectionIndicators: ({ props }) => <InspectionIndicators props={props} />,
+    InspectionIndicatorsSummaryCard: ({ props }) => (
+      <InspectionIndicatorsSummaryCard props={props} />
+    ),
   },
   {
     // 后端生成 createSurface 时应使用这个 catalogId，否则会退回 Basic Catalog，无法命中自定义组件。

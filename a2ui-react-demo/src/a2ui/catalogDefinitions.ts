@@ -36,6 +36,62 @@ const bloodGasReportMetricStatusSchema = z.enum([
   "criticalHigh",
 ]);
 
+const basicInfoFieldKeySchema = z.enum([
+  "medicalRecordNo",
+  "department",
+  "name",
+  "gender",
+  "age",
+  "sampleNo",
+  "thrombusSymptom",
+  "preSampleMedication",
+  "bleedingScore",
+  "diagnosis",
+]);
+
+const optionSchema = z.object({
+  label: z.string().describe("下拉选项展示文本。"),
+  value: z.string().describe("下拉选项提交值。"),
+});
+
+// 科室默认值会注入给模型：模型不传 departmentOptions 时，前端也会使用同一组默认科室。
+const defaultDepartmentOptions = [
+  { label: "妇科", value: "妇科" },
+  { label: "产科", value: "产科" },
+  { label: "内科", value: "内科" },
+  { label: "外科", value: "外科" },
+  { label: "儿科", value: "儿科" },
+  { label: "急诊科", value: "急诊科" },
+  { label: "检验科", value: "检验科" },
+  { label: "呼吸内科", value: "呼吸内科" },
+  { label: "心血管内科", value: "心血管内科" },
+  { label: "消化内科", value: "消化内科" },
+  { label: "神经内科", value: "神经内科" },
+  { label: "骨科", value: "骨科" },
+];
+
+const inspectionIndicatorSchema = z.object({
+  key: z.string().describe("指标唯一 key，用于记录输入结果。"),
+  project: z.string().describe("检测项目名称，例如 TAT、PIC、PT。"),
+  unit: z.string().describe("检测项目单位。"),
+  referenceRange: z.string().describe("参考范围文本，可包含换行。"),
+  min: z.number().optional().describe("可选的参考范围下限，用于自动判断偏低。"),
+  max: z.number().optional().describe("可选的参考范围上限，用于自动判断偏高。"),
+});
+
+const basicInfoSummaryItemSchema = z.object({
+  label: z.string().describe("基本信息字段名称，例如病历号、科室、姓名。"),
+  value: z.string().describe("基本信息字段展示值；缺失值应传未填写。"),
+});
+
+const inspectionSummaryMetricSchema = z.object({
+  project: z.string().describe("检测项目名称，例如 PT、APTT、FIB。"),
+  result: z.string().describe("检测结果展示值。"),
+  abnormal: z.string().describe("异常判断文本，例如正常、偏高、偏低、待判断。"),
+  unit: z.string().describe("检测项目单位。"),
+  referenceRange: z.string().describe("参考范围文本，可包含换行。"),
+});
+
 
 export const medicalCatalogDefinitions = {
   // 组件名必须和 medicalCatalog.tsx renderers 中的 key 完全一致。
@@ -103,6 +159,100 @@ export const medicalCatalogDefinitions = {
       })
       .optional()
       .describe("可选的患者信息初始值，用于只补充缺失字段时保留已知字段。"),
+  }),
+},
+
+BasicInfoForm: {
+  description:
+    "患者基本信息表单。适用于补充病历号、科室、姓名、性别、年龄、样本号、出血或血栓症状、采样前用药、出血评分和诊断信息。提交后会注册 basic-info-submit 工作流事件。",
+  props: z.object({
+    title: z.string().default("基本信息").describe("表单标题。"),
+    submitText: z.string().default("提交").describe("提交按钮文本。"),
+    agePlaceholder: z.string().default("请输入").describe("年龄输入框占位文本。"),
+    fields: z
+      .array(basicInfoFieldKeySchema)
+      .optional()
+      .describe("可选的字段白名单。未传时展示全部基本信息字段。"),
+    departmentOptions: z
+      .array(optionSchema)
+      .default(defaultDepartmentOptions)
+      .describe("科室下拉选项列表。"),
+    initialValue: z
+      .object({
+        medicalRecordNo: z.string().optional().describe("病历号初始值。"),
+        department: z.string().optional().describe("科室初始值。"),
+        name: z.string().optional().describe("姓名初始值。"),
+        gender: z.string().optional().describe("性别初始值。"),
+        age: z.string().optional().describe("年龄初始值。"),
+        ageUnit: z.string().optional().describe("年龄单位初始值。"),
+        sampleNo: z.string().optional().describe("样本号初始值。"),
+        thrombusSymptom: z.string().optional().describe("出血或血栓症状初始值。"),
+        preSampleMedication: z.string().optional().describe("采样前用药初始值。"),
+        bleedingScore: z.string().optional().describe("出血评分初始值。"),
+        diagnosis: z.string().optional().describe("诊断初始值。"),
+      })
+      .optional()
+      .describe("表单初始值，用于回填已知患者信息。"),
+  }),
+},
+
+// 基本信息 tool result 的 A2UI 汇总卡：用于替代 Markdown 表格，保证聊天回复走 renderer 渲染。
+BasicInfoSummaryCard: {
+  description:
+    "患者基本信息提交后的汇总卡片。适用于 requestBasicInfoModal 返回 tool result 后，用结构化 A2UI 表格展示已填写内容，而不是输出 Markdown 表格。",
+  props: z.object({
+    title: z.string().default("基本信息已提交").describe("汇总卡片标题。"),
+    statusText: z.string().default("已记录").describe("右上角状态标签文本。"),
+    items: z
+      .array(basicInfoSummaryItemSchema)
+      .min(1)
+      .max(20)
+      .describe("基本信息字段列表，按需要展示的顺序排列。"),
+    nextPrompt: z
+      .string()
+      .optional()
+      .describe("可选的下一步提示，例如是否继续录入检测指标。"),
+  }),
+},
+
+InspectionIndicators: {
+  description:
+    "检测指标录入表格。适用于录入凝血、血栓、血常规等检测项目结果，并根据 min/max 自动判断正常、偏高、偏低或待判断。提交后会注册 inspection-indicators-submit 工作流事件。",
+  props: z.object({
+    title: z.string().default("检测指标").describe("表格标题。"),
+    submitText: z.string().default("提交").describe("提交按钮文本。"),
+    tableHeight: z.number().default(520).describe("表格纵向滚动高度。"),
+    fields: z
+      .array(z.string())
+      .default([])
+      .describe("可选的指标白名单，可填写指标 key 或检测项目名称。为空时展示全部指标。"),
+    indicators: z
+      .array(inspectionIndicatorSchema)
+      .optional()
+      .describe("可选的指标配置列表。未传时使用默认检测指标。"),
+    initialResults: z
+      .record(z.string())
+      .optional()
+      .describe("检测结果初始值，key 为指标 key，value 为已识别或已填写的结果。"),
+  }),
+},
+
+// 检测指标 tool result 的 A2UI 汇总卡：用于替代模型自由生成的 Markdown 汇总表。
+InspectionIndicatorsSummaryCard: {
+  description:
+    "检测指标提交后的汇总卡片。适用于 requestInspectionIndicatorsModal 返回 tool result 后，用结构化 A2UI 表格展示检测结果、单位、参考范围和异常判断。",
+  props: z.object({
+    title: z.string().default("检测指标已提交").describe("汇总卡片标题。"),
+    statusText: z.string().default("已记录").describe("右上角状态标签文本。"),
+    metrics: z
+      .array(inspectionSummaryMetricSchema)
+      .min(1)
+      .max(40)
+      .describe("检测指标结果列表。"),
+    nextPrompt: z
+      .string()
+      .optional()
+      .describe("可选的下一步提示，例如是否继续生成报告或补充其他信息。"),
   }),
 },
 
