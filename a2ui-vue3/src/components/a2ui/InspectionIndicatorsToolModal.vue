@@ -20,33 +20,123 @@ const emit = defineEmits<{
 }>();
 
 const open = ref(true);
-const resultMap = reactive<Record<string, string>>({
-  ...(props.args.initialResults || {}),
-});
 
 const indicatorSource = computed(() =>
-  (props.args.indicators?.length ? props.args.indicators : defaultIndicators).map((indicator) => ({
-    ...indicator,
-    key: indicator.key || indicator.project,
-  })),
+  (props.args.indicators?.length ? props.args.indicators : defaultIndicators).map((indicator) => {
+    const key = indicator.key || indicator.project;
+    const defaults = defaultIndicators.find(
+      (item) =>
+        item.key.toLowerCase() === String(key).toLowerCase() ||
+        item.project.toLowerCase() === String(indicator.project).toLowerCase(),
+    );
+
+    return {
+      ...defaults,
+      ...indicator,
+      key,
+    };
+  }),
 );
 
-const displayRows = computed(() => {
-  const normalizedFields = (props.args.fields || []).map((field) => String(field).toLowerCase());
-  if (!normalizedFields.length) return indicatorSource.value;
+function normalizeResultKey(value: unknown) {
+  return String(value ?? "").trim().toLowerCase().replace(/\s+/g, "");
+}
 
-  return indicatorSource.value.filter((row) => {
-    const key = String(row.key).toLowerCase();
-    const project = String(row.project).toLowerCase();
-    return normalizedFields.includes(key) || normalizedFields.includes(project);
+function rememberResult(target: Record<string, string>, rawKey: unknown, rawValue: unknown) {
+  const value = rawValue === undefined || rawValue === null ? "" : String(rawValue).trim();
+  if (!value) return;
+
+  const key = String(rawKey ?? "").trim();
+  const normalizedKey = normalizeResultKey(key);
+  if (!normalizedKey) return;
+
+  target[key] = value;
+  target[normalizedKey] = value;
+}
+
+function readIndicatorValue(indicator: Indicator) {
+  const row = indicator as Indicator & Record<string, unknown>;
+  return row.result ?? row.value ?? row.displayValue;
+}
+
+const initialResultMap: Record<string, string> = {};
+Object.entries(props.args.initialResults || {}).forEach(([key, value]) => {
+  rememberResult(initialResultMap, key, value);
+});
+
+indicatorSource.value.forEach((row) => {
+  rememberResult(initialResultMap, row.key, readIndicatorValue(row));
+  rememberResult(initialResultMap, row.project, readIndicatorValue(row));
+
+  const storedValue =
+    initialResultMap[row.key] ??
+    initialResultMap[row.project] ??
+    initialResultMap[normalizeResultKey(row.key)] ??
+    initialResultMap[normalizeResultKey(row.project)];
+
+  rememberResult(initialResultMap, row.key, storedValue);
+  rememberResult(initialResultMap, row.project, storedValue);
+});
+
+const resultMap = reactive<Record<string, string>>({
+  ...initialResultMap,
+});
+
+function getResult(row: Indicator) {
+  return (
+    resultMap[row.key] ??
+    resultMap[row.project] ??
+    resultMap[normalizeResultKey(row.key)] ??
+    resultMap[normalizeResultKey(row.project)] ??
+    ""
+  );
+}
+
+function getInitialResult(row: Indicator) {
+  return (
+    initialResultMap[row.key] ??
+    initialResultMap[row.project] ??
+    initialResultMap[normalizeResultKey(row.key)] ??
+    initialResultMap[normalizeResultKey(row.project)] ??
+    ""
+  );
+}
+
+function setResult(row: Indicator, value: string) {
+  const text = String(value ?? "");
+  resultMap[row.key] = text;
+  resultMap[row.project] = text;
+  resultMap[normalizeResultKey(row.key)] = text;
+  resultMap[normalizeResultKey(row.project)] = text;
+}
+
+const displayRows = computed(() => {
+  const normalizedFields = (props.args.fields || []).map((field) => normalizeResultKey(field));
+  const hasExplicitFields = normalizedFields.length > 0;
+  const shouldShowAll = props.args.showAll === true;
+
+  const requestedRows = hasExplicitFields
+    ? indicatorSource.value.filter((row) => {
+        const key = normalizeResultKey(row.key);
+        const project = normalizeResultKey(row.project);
+        return normalizedFields.includes(key) || normalizedFields.includes(project);
+      })
+    : indicatorSource.value;
+
+  if (hasExplicitFields) return requestedRows;
+  if (shouldShowAll) return requestedRows;
+
+  return requestedRows.filter((row) => {
+    const value = getInitialResult(row);
+    return value === undefined || value === null || String(value).trim() === "";
   });
 });
 
 const tableRows = computed<IndicatorRow[]>(() =>
   displayRows.value.map((row) => ({
     ...row,
-    result: resultMap[row.key] || "",
-    abnormal: getAbnormalStatus(row, resultMap[row.key]),
+    result: getResult(row),
+    abnormal: getAbnormalStatus(row, getResult(row)),
   })),
 );
 
@@ -58,11 +148,11 @@ const columns: TableColumnsType<IndicatorRow> = [
     width: 150,
     customRender: ({ record }) =>
       h(AInput, {
-        value: resultMap[record.key] || "",
+        value: getResult(record),
         allowClear: true,
         placeholder: "请输入",
         "onUpdate:value": (value: string) => {
-          resultMap[record.key] = value;
+          setResult(record, value);
         },
       }),
   },
@@ -83,12 +173,12 @@ const columns: TableColumnsType<IndicatorRow> = [
 
 function submit() {
   const hasAnyResult = displayRows.value.some((row) => {
-    const value = resultMap[row.key];
+    const value = getResult(row);
     return value !== undefined && value !== null && String(value).trim() !== "";
   });
 
   if (!hasAnyResult) {
-    message.warning("请填写检测指标，至少有一项");
+    message.warning(displayRows.value.length ? "请填写检测指标，至少有一项" : "当前没有需要补充的检测指标");
     return;
   }
 
@@ -97,11 +187,23 @@ function submit() {
     type: "inspectionIndicators",
     values: displayRows.value.map((row) => ({
       project: row.project,
-      result: resultMap[row.key] ?? "",
-      abnormal: getAbnormalStatus(row, resultMap[row.key]),
+      result: getResult(row),
+      abnormal: getAbnormalStatus(row, getResult(row)),
       unit: row.unit,
       referenceRange: row.referenceRange,
     })),
+    allValues: indicatorSource.value
+      .filter((row) => {
+        const value = getResult(row);
+        return value !== undefined && value !== null && String(value).trim() !== "";
+      })
+      .map((row) => ({
+        project: row.project,
+        result: getResult(row),
+        abnormal: getAbnormalStatus(row, getResult(row)),
+        unit: row.unit,
+        referenceRange: row.referenceRange,
+      })),
   });
   open.value = false;
 }
@@ -120,7 +222,12 @@ function cancel() {
     :mask-closable="false"
     @cancel="cancel"
   >
+    <div v-if="!tableRows.length" class="modal-empty-state">
+      当前已识别的检测指标无需重复填写。如需修改，请明确指定要修改的指标。
+    </div>
+
     <ATable
+      v-else
       :columns="columns"
       :data-source="tableRows"
       :pagination="false"
@@ -131,7 +238,7 @@ function cancel() {
 
     <template #footer>
       <AButton @click="cancel">取消</AButton>
-      <AButton type="primary" @click="submit">{{ args.submitText || "提交" }}</AButton>
+      <AButton type="primary" :disabled="!tableRows.length" @click="submit">{{ args.submitText || "提交" }}</AButton>
     </template>
   </AModal>
 </template>

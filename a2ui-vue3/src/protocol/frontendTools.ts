@@ -134,6 +134,11 @@ export const frontendTools: Tool[] = [
           default: [],
           description: "可选的指标白名单，可填写指标 key 或检测项目名称。",
         },
+        showAll: {
+          type: "boolean",
+          default: false,
+          description: "是否展示全部指标。用户要求修改全部指标或修改指标但未指定具体指标时应为 true。",
+        },
         indicators: {
           type: "array",
           items: indicatorSchema,

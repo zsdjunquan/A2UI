@@ -52,6 +52,7 @@ export type InspectionIndicatorsToolArgs = {
   submitText?: string;
   tableHeight?: number;
   fields?: string[];
+  showAll?: boolean;
   indicators?: Indicator[];
   initialResults?: Record<string, string>;
 };
@@ -121,19 +122,56 @@ export const defaultIndicators: Indicator[] = [
   { key: "hct", project: "HCT", unit: "%", referenceRange: "35.0~45.0", min: 35, max: 45 },
 ];
 
+function getParsedRange(referenceRange: string) {
+  const normalized = referenceRange
+    .replace(/[－—–]/g, "-")
+    .replace(/[~～]/g, "-")
+    .replace(/≤/g, "<=")
+    .replace(/≥/g, ">=");
+
+  if (/男性|女性|男|女/.test(normalized)) return null;
+
+  const betweenMatch = normalized.match(/(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)/);
+  if (betweenMatch) {
+    return {
+      min: Number(betweenMatch[1]),
+      max: Number(betweenMatch[2]),
+    };
+  }
+
+  const lessMatch = normalized.match(/(?:<=|<|小于|低于)\s*(-?\d+(?:\.\d+)?)/);
+  if (lessMatch) {
+    return {
+      max: Number(lessMatch[1]),
+    };
+  }
+
+  const greaterMatch = normalized.match(/(?:>=|>|大于|高于)\s*(-?\d+(?:\.\d+)?)/);
+  if (greaterMatch) {
+    return {
+      min: Number(greaterMatch[1]),
+    };
+  }
+
+  return null;
+}
+
 export function getAbnormalStatus(record: Indicator, rawValue: string | undefined) {
   if (rawValue === undefined || rawValue === null || rawValue.trim() === "") {
     return "";
   }
 
   const value = Number(rawValue);
+  const parsedRange = getParsedRange(record.referenceRange);
+  const min = record.min ?? parsedRange?.min;
+  const max = record.max ?? parsedRange?.max;
 
-  if (Number.isNaN(value) || record.min === undefined || record.max === undefined) {
+  if (Number.isNaN(value) || (min === undefined && max === undefined)) {
     return "待判断";
   }
 
-  if (value < record.min) return "偏低";
-  if (value > record.max) return "偏高";
+  if (min !== undefined && value < min) return "偏低";
+  if (max !== undefined && value > max) return "偏高";
 
   return "正常";
 }

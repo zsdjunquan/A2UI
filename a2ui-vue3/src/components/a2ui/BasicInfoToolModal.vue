@@ -24,6 +24,10 @@ const form = reactive<BasicInfoValue>({
   ...defaultBasicInfoValue,
   ...props.args.initialValue,
 });
+const initialForm = {
+  ...defaultBasicInfoValue,
+  ...props.args.initialValue,
+};
 
 const requiredMessages: Partial<Record<BasicInfoFieldKey, string>> = {
   medicalRecordNo: "请输入病历号",
@@ -37,8 +41,22 @@ const departmentOptions = computed(() =>
 );
 
 const visibleFields = computed(() => {
-  const requested = props.args.fields?.length ? props.args.fields : fieldKeys;
-  return requested.filter((key): key is BasicInfoFieldKey => fieldKeys.includes(key));
+  if (props.args.fields?.length) {
+    return props.args.fields.filter((key): key is BasicInfoFieldKey => fieldKeys.includes(key));
+  }
+
+  if (props.args.initialValue && Object.keys(props.args.initialValue).length) {
+    return fieldKeys.filter((key) => {
+      if (key === "age") {
+        return !initialForm.age || !String(initialForm.age).trim();
+      }
+
+      const value = initialForm[key];
+      return value === undefined || value === null || !String(value).trim();
+    });
+  }
+
+  return fieldKeys;
 });
 
 const fieldConfigs = computed(() => [
@@ -147,7 +165,11 @@ function cancel() {
     @cancel="cancel"
   >
     <AForm layout="vertical">
-      <ARow :gutter="[24, 18]">
+      <div v-if="!visibleFields.length" class="modal-empty-state">
+        当前患者基本信息已完整，无需重复填写。如需修改，请明确指定要修改的字段。
+      </div>
+
+      <ARow v-else :gutter="[24, 18]">
         <ACol
           v-for="field in fieldConfigs.filter((item) => visibleFields.includes(item.key))"
           :key="field.key"
@@ -191,7 +213,7 @@ function cancel() {
 
     <template #footer>
       <AButton @click="cancel">取消</AButton>
-      <AButton type="primary" @click="submit">{{ args.submitText || "提交" }}</AButton>
+      <AButton type="primary" :disabled="!visibleFields.length" @click="submit">{{ args.submitText || "提交" }}</AButton>
     </template>
   </AModal>
 </template>
