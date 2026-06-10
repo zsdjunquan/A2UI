@@ -3,6 +3,8 @@ node_modules/
 dist/
 dist-ssr/
 .wireit/
+*.tsbuildinfo
+package-lock.json
 
 # 环境变量与本地配置
 .env

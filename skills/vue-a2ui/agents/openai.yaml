@@ -1,0 +1,3 @@
+display_name: Vue A2UI
+short_description: Convert Vue SFCs into React A2UI catalog components.
+default_prompt: Convert Vue component code into React A2UI with Zod props, renderer registration, event bridge registration, and agent JSON examples.
