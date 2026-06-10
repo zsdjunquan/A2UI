@@ -40,13 +40,7 @@ function isToolCallEndEvent(event: BaseEvent): event is ToolCallEndEvent {
 }
 
 export function useAguiAgent(runtimeUrl: string) {
-  const messages = ref<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: "欢迎使用医疗 AI 报告助手，请输入报告内容开始分析。",
-    },
-  ]);
+  const messages = ref<ChatMessage[]>([]);
   const isRunning = ref(false);
   const error = ref("");
   const pendingFrontendTool = ref<PendingFrontendTool | null>(null);
@@ -63,7 +57,7 @@ export function useAguiAgent(runtimeUrl: string) {
   function syncFromAgent(nextMessages: Message[]) {
     const visible: ChatMessage[] = nextMessages
       .filter((message) => message.role === "user" || message.role === "assistant" || message.role === "activity")
-      .map((message) => {
+      .map((message): ChatMessage | null => {
         if (message.role === "activity") {
           return {
             id: message.id,
@@ -78,6 +72,11 @@ export function useAguiAgent(runtimeUrl: string) {
           role: message.role,
           content: typeof message.content === "string" ? message.content : "",
         };
+      })
+      .filter((message): message is ChatMessage => {
+        if (!message) return false;
+        if (message.role === "activity") return Boolean(message.activity);
+        return message.content.trim().length > 0;
       });
 
     if (visible.length) {
