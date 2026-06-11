@@ -22,7 +22,7 @@ const emit = defineEmits<{
         {{ skipText }}
       </ElButton>
       <ElButton type="primary" :loading="loading" :disabled="disabled" @click="emit('submit')">
-        {{ submitText }}
+        {{ loading && loadingText ? loadingText : submitText }}
       </ElButton>
     </div>
   </div>

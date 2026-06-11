@@ -11,11 +11,15 @@ import type { FieldComponentRegistry } from "./types";
 export { BooleanField, MultiChoiceField, NumberField, SelectField, SingleChoiceField, SubmitBar, TextareaField, TextField };
 
 export type {
+  AgentFormSchema,
   AgentFormFieldConfig,
   AgentFormFieldKind,
+  AgentFormSubmitResult,
+  AgentFormValueMap,
   BooleanFieldProps,
   ChoiceOption,
   ChoiceValue,
+  FieldMessages,
   FieldBaseProps,
   FieldComponentRegistry,
   MultiChoiceFieldProps,
