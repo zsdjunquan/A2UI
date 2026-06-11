@@ -1,3 +1,5 @@
+import type { AgentFormFieldConfig, ChoiceValue, SubmitBarProps } from "./fields";
+
 export type Option = {
   label: string;
   value: string;
@@ -55,6 +57,17 @@ export type InspectionIndicatorsToolArgs = {
   showAll?: boolean;
   indicators?: Indicator[];
   initialResults?: Record<string, string>;
+};
+
+export type AgentFormValueMap = Record<string, ChoiceValue | ChoiceValue[] | undefined>;
+
+export type AgentFormToolArgs = {
+  formId?: string;
+  title?: string;
+  description?: string;
+  fields: AgentFormFieldConfig[];
+  initialValue?: AgentFormValueMap;
+  submitBar?: SubmitBarProps;
 };
 
 export const fieldKeys: BasicInfoFieldKey[] = [

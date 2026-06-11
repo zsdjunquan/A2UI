@@ -5,14 +5,90 @@ const optionSchema = {
   properties: {
     label: {
       type: "string",
-      description: "下拉选项展示文本。",
+      description: "选项展示文本。",
     },
     value: {
+      anyOf: [{ type: "string" }, { type: "number" }, { type: "boolean" }],
+      description: "选项提交值。",
+    },
+    description: {
       type: "string",
-      description: "下拉选项提交值。",
+      description: "选项补充说明。",
+    },
+    disabled: {
+      type: "boolean",
+      default: false,
+      description: "是否禁用该选项。",
     },
   },
   required: ["label", "value"],
+  additionalProperties: false,
+};
+
+const choiceValueSchema = {
+  anyOf: [{ type: "string" }, { type: "number" }, { type: "boolean" }],
+};
+
+const agentFormFieldSchema = {
+  type: "object",
+  properties: {
+    type: {
+      type: "string",
+      enum: [
+        "TextField",
+        "TextareaField",
+        "SingleChoiceField",
+        "MultiChoiceField",
+        "SelectField",
+        "NumberField",
+        "BooleanField",
+      ],
+      description: "字段组件类型。",
+    },
+    key: {
+      type: "string",
+      description: "字段唯一 key，会作为提交 values 的属性名。",
+    },
+    label: { type: "string", description: "字段标题。" },
+    description: { type: "string", description: "字段说明。" },
+    placeholder: { type: "string", description: "占位文本。" },
+    error: { type: "string", description: "字段错误提示，一般由前端校验生成。" },
+    disabled: { type: "boolean", default: false, description: "是否禁用字段。" },
+    required: { type: "boolean", default: false, description: "是否必填。" },
+    clearable: { type: "boolean", default: true, description: "是否允许清空。" },
+    maxlength: { type: "number", description: "最大输入长度。" },
+    rows: { type: "number", description: "Textarea 行数。" },
+    showWordLimit: { type: "boolean", default: true, description: "是否展示字数限制。" },
+    inputType: {
+      type: "string",
+      enum: ["text", "email", "url"],
+      description: "TextField 输入类型。为避免和字段组件 type 冲突，schema 中使用 inputType。",
+    },
+    options: {
+      type: "array",
+      items: optionSchema,
+      description: "单选、多选、下拉字段选项。",
+    },
+    variant: {
+      type: "string",
+      enum: ["capsule", "card"],
+      description: "选择项展示形态。",
+    },
+    filterable: { type: "boolean", default: false, description: "SelectField 是否支持搜索。" },
+    min: { type: "number", description: "NumberField 最小值。" },
+    max: { type: "number", description: "NumberField 最大值。" },
+    step: { type: "number", default: 1, description: "NumberField 步长。" },
+    precision: { type: "number", description: "NumberField 小数精度。" },
+    unit: { type: "string", description: "NumberField 单位。" },
+    activeText: { type: "string", description: "BooleanField 开启文案。" },
+    inactiveText: { type: "string", description: "BooleanField 关闭文案。" },
+    mode: {
+      type: "string",
+      enum: ["switch", "checkbox"],
+      description: "BooleanField 展示模式。",
+    },
+  },
+  required: ["type", "key"],
   additionalProperties: false,
 };
 
@@ -62,6 +138,56 @@ const indicatorSchema = {
 };
 
 export const frontendTools: Tool[] = [
+  {
+    name: "requestAgentFormModal",
+    description:
+      "弹出通用动态表单弹窗，支持 TextField、TextareaField、SingleChoiceField、MultiChoiceField、SelectField、NumberField、BooleanField 和 SubmitBar；提交后返回结构化 values 给后端 agent。",
+    parameters: {
+      type: "object",
+      properties: {
+        formId: {
+          type: "string",
+          description: "表单语义 ID，用于 agent 区分本次收集的信息类型。",
+        },
+        title: {
+          type: "string",
+          default: "补充信息",
+          description: "弹窗标题。",
+        },
+        description: {
+          type: "string",
+          description: "弹窗内说明文字。",
+        },
+        fields: {
+          type: "array",
+          items: agentFormFieldSchema,
+          description: "要展示的字段配置。",
+        },
+        initialValue: {
+          type: "object",
+          additionalProperties: {
+            anyOf: [choiceValueSchema, { type: "array", items: choiceValueSchema }],
+          },
+          description: "表单初始值，key 与 fields[].key 对应。",
+        },
+        submitBar: {
+          type: "object",
+          properties: {
+            submitText: { type: "string", default: "提交", description: "提交按钮文本。" },
+            skipText: { type: "string", default: "跳过", description: "跳过按钮文本。" },
+            defaultHint: { type: "string", description: "提交区默认值提示。" },
+            loading: { type: "boolean", default: false, description: "提交按钮 loading 状态。" },
+            disabled: { type: "boolean", default: false, description: "是否禁用提交。" },
+            showSkip: { type: "boolean", default: false, description: "是否展示跳过按钮。" },
+          },
+          additionalProperties: false,
+          description: "提交区配置。",
+        },
+      },
+      required: ["fields"],
+      additionalProperties: false,
+    },
+  },
   {
     name: "requestBasicInfoModal",
     description:

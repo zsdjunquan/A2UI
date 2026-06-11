@@ -236,7 +236,8 @@ export function useAguiAgent(runtimeUrl: string) {
 
       if (
         toolCallName === "requestBasicInfoModal" ||
-        toolCallName === "requestInspectionIndicatorsModal"
+        toolCallName === "requestInspectionIndicatorsModal" ||
+        toolCallName === "requestAgentFormModal"
       ) {
         const args = { ...toolCallArgs };
 
