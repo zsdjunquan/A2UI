@@ -16,6 +16,8 @@ const input = ref("");
 const inputEl = ref<HTMLTextAreaElement | null>(null);
 const scrollEl = ref<HTMLElement | null>(null);
 const hasStarted = ref(false);
+
+// useAguiAgent 封装了 AG-UI HttpAgent、消息同步、frontend tool 弹窗和工作流事件续跑。
 const {
   messages,
   isRunning,
@@ -28,6 +30,7 @@ const {
   stop,
 } = useAguiAgent(runtimeUrl);
 
+// 输入框按内容自动增高，最大高度限制在 180px，避免长文本撑破聊天布局。
 function resizeInput(event?: Event) {
   const target = event?.target instanceof HTMLTextAreaElement ? event.target : null;
   if (!target) return;
@@ -38,6 +41,7 @@ function resizeInput(event?: Event) {
   target.style.overflowY = target.scrollHeight > 180 ? "auto" : "hidden";
 }
 
+// 用户发送普通文本后交给 AG-UI agent；后续 assistant 文本、activity、tool call 都由 subscriber 同步回来。
 async function handleSubmit() {
   const text = input.value;
   if (!text.trim() || isRunning.value) return;
@@ -52,6 +56,7 @@ async function handleSubmit() {
   await sendText(text);
 }
 
+// A2UI activity 组件里的按钮会发 workflow 事件，这里转成一条 user message 继续驱动 agent。
 async function handleWorkflow(event: { type: A2UIWorkflowEventName; detail: unknown }) {
   await sendWorkflowEvent(event.type, event.detail);
 }
@@ -60,6 +65,7 @@ watch(
   messages,
   async () => {
     await nextTick();
+    // 新消息到达后自动滚到底部，让 streamed text / activity 卡片保持可见。
     scrollEl.value?.scrollTo({ top: scrollEl.value.scrollHeight, behavior: "smooth" });
   },
   { deep: true },

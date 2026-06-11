@@ -30,6 +30,7 @@ const emit = defineEmits<{
 const errors = ref<Record<string, string>>({});
 const values = reactive<AgentFormValueMap>({});
 
+// columns 由后端 schema 控制，但限制在 1-4 列，避免异常 JSON 破坏布局。
 const fields = computed(() => props.schema.fields || []);
 const columns = computed(() => {
   const value = Number(props.schema.layout?.columns || 1);
@@ -45,6 +46,7 @@ watch(
   { immediate: true, deep: true },
 );
 
+// schema 变化通常意味着 agent 返回了新表单；重置值和错误，避免旧表单状态串到新表单。
 function resetValues() {
   Object.keys(values).forEach((key) => {
     delete values[key];
@@ -58,6 +60,7 @@ function resetValues() {
 }
 
 function getInitialValue(field: AgentFormFieldConfig) {
+  // 初始值优先级：后端回填 initialValues > 字段 defaultValue > 按字段类型生成空值。
   const initial = props.schema.initialValues?.[field.key];
   if (initial !== undefined) return initial;
   if (field.defaultValue !== undefined) return field.defaultValue;
@@ -101,6 +104,7 @@ function setValue(key: string, value: ChoiceValue | ChoiceValue[] | undefined) {
   }
 }
 
+// 当前只做必填校验；messages 里已预留 invalid/min/max/maxlength，后续可继续扩展规则。
 function isEmptyValue(value: ChoiceValue | ChoiceValue[] | undefined) {
   if (Array.isArray(value)) return value.length === 0;
   if (typeof value === "boolean") return false;
@@ -128,6 +132,7 @@ function cleanValues() {
 }
 
 function createResult(skipped = false): AgentFormSubmitResult {
+  // 提交结果保持稳定结构，后端可通过 formId + values 继续需求拆解。
   return {
     ok: true,
     type: "agentForm",
@@ -150,6 +155,7 @@ function handleSkip() {
 </script>
 
 <template>
+  <!-- 后端/agent 完全控制 title、description、layout、fields、submit 文案；组件只解释 schema。 -->
   <section class="dynamic-agent-form" :style="{ '--dynamic-agent-form-columns': columns }">
     <header v-if="schema.title || schema.description" class="dynamic-agent-form__header">
       <h3 v-if="schema.title">{{ schema.title }}</h3>

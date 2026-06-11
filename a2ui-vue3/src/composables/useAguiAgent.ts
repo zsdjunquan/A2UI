@@ -23,6 +23,7 @@ export type PendingFrontendTool = {
   args: Record<string, unknown>;
 };
 
+// 检测指标存在多种用户写法；先归一化，才能把“修改 TAT / t-PAIC”等自然语言请求映射到字段 key。
 const knownIndicatorAliases: Record<string, string[]> = {
   tat: ["tat"],
   pic: ["pic"],
@@ -77,6 +78,7 @@ function normalizeIndicatorKey(value: unknown) {
   return matchedKey || compactText;
 }
 
+// 将不同来源的指标结果统一缓存成 key -> value。这样 frontend tool 重新打开时不会丢失已填写数据。
 function rememberIndicatorResult(target: Record<string, string>, rawKey: unknown, rawValue: unknown) {
   const key = normalizeIndicatorKey(rawKey);
   const value = rawValue === undefined || rawValue === null ? "" : String(rawValue).trim();
@@ -124,6 +126,7 @@ function collectIndicatorResults(value: unknown) {
   return results;
 }
 
+// 用户提交指标弹窗后，缓存要能更新也要能删除：用户清空某项并提交时不应被旧值重新填回。
 function updateSubmittedIndicatorResults(current: Record<string, string>, value: unknown) {
   const next = { ...current };
 
@@ -149,6 +152,7 @@ function updateSubmittedIndicatorResults(current: Record<string, string>, value:
 }
 
 
+// 从用户最近一句话中识别明确提到的指标，用于“只修改 TAT”这类精确编辑场景。
 function extractRequestedIndicators(text: string) {
   const normalized = text.toLowerCase();
   const requested = Object.entries(knownIndicatorAliases)
@@ -185,6 +189,7 @@ export function useAguiAgent(runtimeUrl: string) {
 
   const canSend = computed(() => !isRunning.value);
 
+  // AG-UI agent 内部消息包含 tool、空 assistant 等运行态消息；UI 只展示用户、助手和 activity。
   function syncFromAgent(nextMessages: Message[]) {
     const visible: ChatMessage[] = nextMessages
       .filter((message) => message.role === "user" || message.role === "assistant" || message.role === "activity")
@@ -241,6 +246,7 @@ export function useAguiAgent(runtimeUrl: string) {
       ) {
         const args = { ...toolCallArgs };
 
+        // 检测指标弹窗需要合并前端缓存和后端参数，支持“重新打开继续补/改”。
         if (toolCallName === "requestInspectionIndicatorsModal") {
           args.initialResults = {
             ...submittedIndicatorResults.value,
@@ -248,6 +254,7 @@ export function useAguiAgent(runtimeUrl: string) {
           };
         }
 
+        // 用户说“修改 TAT”时只展示对应指标；说“修改全部指标”时展示所有指标。
         if (toolCallName === "requestInspectionIndicatorsModal" && isModifyIntent(lastUserText.value)) {
           const requestedIndicators = extractRequestedIndicators(lastUserText.value);
           if (requestedIndicators.length) {
@@ -295,6 +302,7 @@ export function useAguiAgent(runtimeUrl: string) {
     isRunning.value = true;
 
     try {
+      // tools 必须传给 runAgent，后端 agent 才能发起这些 frontend tool call。
       await agent.value.runAgent({ tools: frontendTools }, subscriber);
     } catch (runError) {
       const message = runError instanceof Error ? runError.message : "Agent 运行失败";
@@ -354,6 +362,7 @@ export function useAguiAgent(runtimeUrl: string) {
 
     pendingFrontendTool.value = null;
 
+    // frontend tool 的结果以 role=tool 写回 AG-UI 消息流，随后 continueAgent 让后端继续推理。
     agent.value.addMessage({
       id: createId("tool"),
       role: "tool",

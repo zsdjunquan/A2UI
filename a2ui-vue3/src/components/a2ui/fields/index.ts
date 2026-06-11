@@ -8,6 +8,7 @@ import TextareaField from "./TextareaField.vue";
 import TextField from "./TextField.vue";
 import type { FieldComponentRegistry } from "./types";
 
+// 字段库统一出口：动态表单、工具弹窗或其它 A2UI 组件都从这里拿字段组件和协议类型。
 export { BooleanField, MultiChoiceField, NumberField, SelectField, SingleChoiceField, SubmitBar, TextareaField, TextField };
 
 export type {

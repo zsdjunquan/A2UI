@@ -14,6 +14,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 多行文本字段：用于补充说明、需求背景、备注等长文本输入。 -->
   <FieldFrame v-bind="props">
     <ElInput
       :model-value="modelValue"

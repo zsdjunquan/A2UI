@@ -13,6 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 数字字段：预算、数量、时长、页数、阈值等数值型输入。 -->
   <FieldFrame v-bind="props">
     <div class="number-field">
       <ElInputNumber

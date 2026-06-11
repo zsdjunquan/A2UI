@@ -29,6 +29,7 @@ function toggle(option: ChoiceOption) {
 </script>
 
 <template>
+  <!-- 多选字段：返回数组，适合目标平台、功能模块、页面范围等可组合选项。 -->
   <FieldFrame v-bind="props">
     <div class="choice-group" :class="`is-${variant}`">
       <button

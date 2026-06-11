@@ -22,6 +22,7 @@ function normalizeComponentPayload(value: unknown): A2UIPayload | null {
   return null;
 }
 
+// 后端 activity payload 可能被包在 surface/root/ui/a2ui 等不同层级；这里做容错提取，保证渲染器拿到统一形状。
 export function extractA2UIPayload(content: unknown): A2UIPayload | null {
   const direct = normalizeComponentPayload(content);
   if (direct) return direct;

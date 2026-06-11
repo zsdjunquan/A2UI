@@ -5,6 +5,7 @@ defineProps<FieldBaseProps>();
 </script>
 
 <template>
+  <!-- 字段外壳统一处理 label、description、required 星号和错误提示，具体输入控件通过 slot 注入。 -->
   <label class="agent-field" :class="{ 'has-error': error, 'is-disabled': disabled }">
     <span v-if="label" class="agent-field__label">
       {{ label }}

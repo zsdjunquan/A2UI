@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// A2UI catalog 描述后端可以发送哪些 activity 组件，以及每个组件 props 的结构。
 export const MEDICAL_CATALOG_ID = "https://example.local/a2ui/medical-catalog/v1";
 
 export const medicalCatalogDefinitions = {

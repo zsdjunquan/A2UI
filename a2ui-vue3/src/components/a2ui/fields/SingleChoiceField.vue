@@ -24,6 +24,7 @@ function choose(option: ChoiceOption) {
 </script>
 
 <template>
+  <!-- 单选字段：胶囊/卡片两种形态，适合视觉调性、平台首选项等互斥选项。 -->
   <FieldFrame v-bind="props">
     <div class="choice-group" :class="`is-${variant}`">
       <button

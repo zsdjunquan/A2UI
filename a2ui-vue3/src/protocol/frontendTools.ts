@@ -1,5 +1,6 @@
 import type { Tool } from "@ag-ui/core";
 
+// frontendTools 会传给 AG-UI runAgent，后端 agent 只能调用这里声明过的前端工具。
 const optionSchema = {
   type: "object",
   properties: {

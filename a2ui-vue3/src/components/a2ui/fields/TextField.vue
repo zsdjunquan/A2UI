@@ -14,6 +14,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 单行文本字段：姓名、标题、关键词、URL、邮箱等都走这个组件。 -->
   <FieldFrame v-bind="props">
     <ElInput
       :model-value="modelValue"

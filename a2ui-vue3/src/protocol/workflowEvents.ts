@@ -20,6 +20,7 @@ function createMessageId() {
 }
 
 export function createWorkflowMessage(type: A2UIWorkflowEventName, detail: unknown): Message {
+  // Activity 组件的按钮本质上不是用户直接输入文本；这里把结构化事件转成 user message，让 agent 接着当前流程跑。
   const metricHint =
     type === "blood-gas-metrics-submit"
       ? "如果 detail.metrics 存在，下一步数据确认卡必须直接使用 detail.metrics 作为 metrics 数据源。"

@@ -37,6 +37,7 @@ const missingMetrics = computed(() => {
 const values = reactive<Record<string, string>>({});
 const errors = ref<Record<string, string>>({});
 
+// 后端只传缺失指标 key，前端负责把 key 映射成展示名称和单位。
 function text(key: string, fallback: string) {
   const value = props.props[key];
   return typeof value === "string" && value.trim() ? value : fallback;
@@ -60,6 +61,7 @@ function handleSubmit() {
 
   emit("submit", {
     type: "bloodGasMetrics",
+    // workflowEvents 里会提示后端继续使用这组 values 生成后续数据确认卡。
     values: detailValues,
   });
 }

@@ -10,6 +10,7 @@ const emit = defineEmits<{
 }>();
 
 const initial = (props.props.initialPatient || {}) as Record<string, string>;
+// Activity 表单使用后端 initialPatient 回填，用户提交后通过 workflow 事件继续 agent 流程。
 const form = reactive({
   patientName: initial.patientName || "",
   gender: initial.gender || "",
@@ -20,6 +21,7 @@ const form = reactive({
 const errors = ref<Record<string, string>>({});
 
 function label(key: string, fallback: string) {
+  // 标题、占位符、按钮文案都允许后端通过 props 覆盖；没有时使用前端兜底文案。
   const value = props.props[key];
   return typeof value === "string" && value.trim() ? value : fallback;
 }

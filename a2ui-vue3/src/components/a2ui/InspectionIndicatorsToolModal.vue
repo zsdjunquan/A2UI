@@ -21,6 +21,7 @@ const emit = defineEmits<{
 
 const open = ref(true);
 
+// 后端可传自定义指标；没有传时使用默认凝血相关指标，并用默认配置补齐单位/参考范围。
 const indicatorSource = computed(() =>
   (props.args.indicators?.length ? props.args.indicators : defaultIndicators).map((indicator) => {
     const key = indicator.key || indicator.project;
@@ -42,6 +43,7 @@ function normalizeResultKey(value: unknown) {
   return String(value ?? "").trim().toLowerCase().replace(/\s+/g, "");
 }
 
+// 同一个指标可能用 key 或项目名访问，缓存时两种索引都记住，避免回填丢失。
 function rememberResult(target: Record<string, string>, rawKey: unknown, rawValue: unknown) {
   const value = rawValue === undefined || rawValue === null ? "" : String(rawValue).trim();
   if (!value) return;
@@ -126,6 +128,7 @@ const displayRows = computed(() => {
   if (hasExplicitFields) return requestedRows;
   if (shouldShowAll) return requestedRows;
 
+  // 默认只展示还没有结果的指标；修改全部时 showAll=true 会绕过这条过滤。
   return requestedRows.filter((row) => {
     const value = getInitialResult(row);
     return value === undefined || value === null || String(value).trim() === "";
@@ -185,6 +188,7 @@ function submit() {
   emit("submit", {
     ok: true,
     type: "inspectionIndicators",
+    // values 是本次弹窗展示/编辑的结果，allValues 是当前已知的完整指标集合。
     values: displayRows.value.map((row) => ({
       project: row.project,
       result: getResult(row),

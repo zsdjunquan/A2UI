@@ -15,6 +15,8 @@ const emit = defineEmits<{
 }>();
 
 const open = ref(true);
+
+// 兼容旧版 requestAgentFormModal 扁平参数：在弹窗内部转换成新的 DynamicAgentForm schema。
 const schema = computed<AgentFormSchema>(() => ({
   schemaVersion: "1.0",
   formId: props.args.formId || "agentForm",
@@ -29,6 +31,7 @@ const schema = computed<AgentFormSchema>(() => ({
 }));
 
 function submit(result: AgentFormSubmitResult) {
+  // DynamicAgentForm 已经产出标准 result，这里只负责关闭弹窗并向 AG-UI 回传。
   emit("submit", result);
   open.value = false;
 }

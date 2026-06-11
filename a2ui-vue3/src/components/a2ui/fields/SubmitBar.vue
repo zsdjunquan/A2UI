@@ -15,6 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 提交区由后端 submit 配置控制文案和跳过按钮；具体提交逻辑由父组件处理。 -->
   <div class="submit-bar">
     <p v-if="defaultHint" class="submit-bar__hint">{{ defaultHint }}</p>
     <div class="submit-bar__actions">

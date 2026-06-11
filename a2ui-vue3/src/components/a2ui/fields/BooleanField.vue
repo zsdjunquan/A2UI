@@ -15,6 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 布尔字段：开关或勾选框两种模式，适合“是否需要登录/是否支持移动端”等问题。 -->
   <FieldFrame v-bind="props">
     <ElCheckbox
       v-if="mode === 'checkbox'"

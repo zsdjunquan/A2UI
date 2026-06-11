@@ -16,6 +16,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 根据 AG-UI toolCallName 选择对应前端弹窗；提交结果会写回 role=tool 消息。 -->
   <BasicInfoToolModal
     v-if="tool?.name === 'requestBasicInfoModal'"
     :args="tool.args as BasicInfoToolArgs"

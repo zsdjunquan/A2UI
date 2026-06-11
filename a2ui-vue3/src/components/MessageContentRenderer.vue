@@ -10,6 +10,7 @@ const props = defineProps<{
 const rootEl = ref<HTMLElement | null>(null);
 const cleanupHandlers: Array<() => void> = [];
 
+// assistant 消息走 markdown 渲染；普通 user/error 文本保持纯文本，避免不必要的 HTML 注入面。
 const markdown = new MarkdownIt({
   html: false,
   breaks: true,
@@ -52,6 +53,7 @@ function looksLikeStandaloneCode(value: string) {
   return signalCount / lines.length >= 0.35;
 }
 
+// 有些模型会直接吐多行代码但不包 ```，这里补成 fenced code 以获得统一样式和复制按钮。
 const normalizedContent = computed(() => {
   const content = props.content || "";
   if (!props.rich || !looksLikeStandaloneCode(content)) return content;
@@ -71,6 +73,7 @@ function cleanupCodeCopyButtons() {
   }
 }
 
+// Clipboard API 不可用时走 textarea fallback，兼容旧浏览器或受限环境。
 async function copyText(text: string) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -88,6 +91,7 @@ async function copyText(text: string) {
   document.body.removeChild(textarea);
 }
 
+// markdown-it 只负责生成 HTML；复制按钮在 DOM 更新后手动增强，卸载时清理事件监听。
 function enhanceCodeBlocks() {
   cleanupCodeCopyButtons();
 

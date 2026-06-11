@@ -10,12 +10,14 @@ const emit = defineEmits<{
 const patient = (props.props.patient || {}) as Record<string, string>;
 const metrics = Array.isArray(props.props.metrics) ? (props.props.metrics as Record<string, string>[]) : [];
 
+// 确认卡不编辑数据，只把后端整理后的 patient/metrics 展示给用户做最终确认。
 function text(key: string, fallback: string) {
   const value = props.props[key];
   return typeof value === "string" && value.trim() ? value : fallback;
 }
 
 function confirm() {
+  // 用户确认后把原始 patient/metrics 回传，后端继续生成分析报告。
   emit("confirm", {
     confirmed: true,
     patient,

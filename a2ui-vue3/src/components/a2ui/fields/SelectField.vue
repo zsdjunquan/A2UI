@@ -14,6 +14,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- 下拉字段：选项较多时使用，避免大量选项把表单撑得过长。 -->
   <FieldFrame v-bind="props">
     <ElSelect
       :model-value="modelValue"

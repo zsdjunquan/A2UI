@@ -2,6 +2,7 @@ import type { Component } from "vue";
 
 export type ChoiceValue = string | number | boolean;
 
+// 后端动态表单 schema 中所有选择类字段共用这个选项结构。
 export type ChoiceOption = {
   label: string;
   value: ChoiceValue;
@@ -9,6 +10,7 @@ export type ChoiceOption = {
   disabled?: boolean;
 };
 
+// 字段级提示文案。当前实现了 required，其他字段为后续校验能力预留。
 export type FieldMessages = {
   required?: string;
   invalid?: string;
@@ -17,6 +19,7 @@ export type FieldMessages = {
   maxlength?: string;
 };
 
+// 所有字段共享的展示属性：标题、说明、占位符、禁用和必填状态都由后端 schema 控制。
 export type FieldBaseProps = {
   label?: string;
   description?: string;
@@ -85,6 +88,7 @@ export type SubmitBarProps = {
   showSkip?: boolean;
 };
 
+// 动态表单支持的字段类型枚举；type 名称必须和组件注册名保持一致。
 export type AgentFormFieldKind =
   | "TextField"
   | "TextareaField"
@@ -105,6 +109,7 @@ export type AgentFormFieldConfig =
 
 export type AgentFormValueMap = Record<string, ChoiceValue | ChoiceValue[] | undefined>;
 
+// 后端/agent 返回的完整动态表单协议。DynamicAgentForm 只解释这个 schema，不内置业务字段。
 export type AgentFormSchema = {
   schemaVersion: "1.0" | string;
   formId: string;
@@ -118,6 +123,7 @@ export type AgentFormSchema = {
   submit?: SubmitBarProps;
 };
 
+// 用户提交动态表单后前端返回给 agent 的稳定结果结构。
 export type AgentFormSubmitResult = {
   ok: true;
   type: "agentForm";

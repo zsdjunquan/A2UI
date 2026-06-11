@@ -29,6 +29,7 @@ const initialForm = {
   ...props.args.initialValue,
 };
 
+// 这些字段在当前业务中必填；其它字段允许用户按需补充。
 const requiredMessages: Partial<Record<BasicInfoFieldKey, string>> = {
   medicalRecordNo: "请输入病历号",
   name: "请输入姓名",
@@ -40,6 +41,7 @@ const departmentOptions = computed(() =>
   props.args.departmentOptions?.length ? props.args.departmentOptions : defaultDepartmentOptions,
 );
 
+// fields 明确传入时只展示指定字段；否则如果有初始值，就只展示缺失字段，减少重复填写。
 const visibleFields = computed(() => {
   if (props.args.fields?.length) {
     return props.args.fields.filter((key): key is BasicInfoFieldKey => fieldKeys.includes(key));
@@ -119,6 +121,7 @@ const fieldConfigs = computed(() => [
   options?: Array<{ label: string; value: string }>;
 }>);
 
+// 只校验当前可见字段，避免隐藏字段阻塞提交。
 function validate() {
   const next: Partial<Record<BasicInfoFieldKey, string>> = {};
 
@@ -141,6 +144,7 @@ function submit() {
   emit("submit", {
     ok: true,
     type: "basicInfo",
+    // 返回完整 value，便于后端合并到 graph state，而不需要猜哪些字段没变。
     value: {
       ...defaultBasicInfoValue,
       ...props.args.initialValue,

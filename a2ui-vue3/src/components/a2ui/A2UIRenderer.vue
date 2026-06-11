@@ -17,9 +17,11 @@ const emit = defineEmits<{
   workflow: [event: { type: A2UIWorkflowEventName; detail: unknown }];
 }>();
 
+// activity.content 由后端发送，先归一化成 { component, props } 再按 component 名分发到具体卡片。
 const payload = computed(() => extractA2UIPayload(props.activity.content));
 
 function forward(type: A2UIWorkflowEventName, detail: unknown) {
+  // 子组件提交的数据不直接调用 agent，而是交给 AgentChat 转成 workflow message。
   emit("workflow", { type, detail });
 }
 </script>
@@ -54,6 +56,7 @@ function forward(type: A2UIWorkflowEventName, detail: unknown) {
       :props="payload.props"
     />
 
+    <!-- 未识别的 A2UI payload 保留 JSON 兜底，方便调试后端返回结构。 -->
     <pre v-else class="unknown-a2ui">{{ JSON.stringify(activity.content, null, 2) }}</pre>
   </div>
 </template>

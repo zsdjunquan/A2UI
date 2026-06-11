@@ -6,6 +6,7 @@ const props = defineProps<{
 const evidence = Array.isArray(props.props.evidence) ? props.props.evidence.map(String) : [];
 const nextSteps = Array.isArray(props.props.nextSteps) ? props.props.nextSteps.map(String) : [];
 
+// 通用流程节点卡：用于展示某个 agent 节点的结论、依据和下一步建议。
 function text(key: string, fallback: string) {
   const value = props.props[key];
   return typeof value === "string" && value.trim() ? value : fallback;

@@ -9,6 +9,7 @@ const metrics = Array.isArray(props.props.metrics) ? (props.props.metrics as Rec
 const abnormalSummary = Array.isArray(props.props.abnormalSummary) ? props.props.abnormalSummary.map(String) : [];
 const suggestions = Array.isArray(props.props.suggestions) ? props.props.suggestions.map(String) : [];
 
+// 报告卡是只读 activity，所有内容由后端 props 控制，前端只负责结构化展示。
 function text(key: string, fallback: string) {
   const value = props.props[key];
   return typeof value === "string" && value.trim() ? value : fallback;
