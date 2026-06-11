@@ -7,6 +7,7 @@ import type { AgentFormToolArgs, BasicInfoToolArgs, InspectionIndicatorsToolArgs
 
 defineProps<{
   tool: PendingFrontendTool | null;
+  submitting?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   <BasicInfoToolModal
     v-if="tool?.name === 'requestBasicInfoModal'"
     :args="tool.args as BasicInfoToolArgs"
+    :submitting="submitting"
     @submit="emit('submit', $event)"
     @cancel="emit('cancel')"
   />
@@ -27,6 +29,7 @@ const emit = defineEmits<{
   <InspectionIndicatorsToolModal
     v-else-if="tool?.name === 'requestInspectionIndicatorsModal'"
     :args="tool.args as InspectionIndicatorsToolArgs"
+    :submitting="submitting"
     @submit="emit('submit', $event)"
     @cancel="emit('cancel')"
   />
@@ -34,6 +37,7 @@ const emit = defineEmits<{
   <AgentFormToolModal
     v-else-if="tool?.name === 'requestAgentFormModal'"
     :args="tool.args as AgentFormToolArgs"
+    :submitting="submitting"
     @submit="emit('submit', $event)"
     @cancel="emit('cancel')"
   />

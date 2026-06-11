@@ -12,6 +12,7 @@ type IndicatorRow = Indicator & {
 
 const props = defineProps<{
   args: InspectionIndicatorsToolArgs;
+  submitting?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -175,6 +176,8 @@ const columns: TableColumnsType<IndicatorRow> = [
 ];
 
 function submit() {
+  if (props.submitting) return;
+
   const hasAnyResult = displayRows.value.some((row) => {
     const value = getResult(row);
     return value !== undefined && value !== null && String(value).trim() !== "";
@@ -242,7 +245,7 @@ function cancel() {
 
     <template #footer>
       <AButton @click="cancel">取消</AButton>
-      <AButton type="primary" :disabled="!tableRows.length" @click="submit">{{ args.submitText || "提交" }}</AButton>
+      <AButton type="primary" :loading="submitting" :disabled="!tableRows.length" @click="submit">{{ args.submitText || "提交" }}</AButton>
     </template>
   </AModal>
 </template>

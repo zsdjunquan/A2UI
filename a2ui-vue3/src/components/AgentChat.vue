@@ -11,7 +11,7 @@ const props = defineProps<{
   runtimeUrl?: string;
 }>();
 
-const runtimeUrl = props.runtimeUrl || "/api/copilot-agent";
+const runtimeUrl = props.runtimeUrl || "/api/copilotkit";
 const input = ref("");
 const inputEl = ref<HTMLTextAreaElement | null>(null);
 const scrollEl = ref<HTMLElement | null>(null);
@@ -23,6 +23,7 @@ const {
   isRunning,
   canSend,
   pendingFrontendTool,
+  isSubmittingFrontendTool,
   sendText,
   sendWorkflowEvent,
   submitFrontendToolResult,
@@ -80,6 +81,7 @@ watch(
   >
     <A2UIFrontendToolModals
       :tool="pendingFrontendTool"
+      :submitting="isSubmittingFrontendTool"
       @submit="submitFrontendToolResult"
       @cancel="clearPendingFrontendTool"
     />

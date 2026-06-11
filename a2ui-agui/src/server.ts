@@ -3,7 +3,6 @@ import { serve } from "@hono/node-server";
 import {
   BuiltInAgent,
   CopilotRuntime,
-  createCopilotEndpoint,
   createCopilotRuntimeHandler,
   InMemoryAgentRunner,
 } from "@copilotkit/runtime/v2";
@@ -11,7 +10,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { config as loadEnv } from "dotenv";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createMedicalGraphPrompt } from "./graph.js";
+import { createMedicalGraphPrompt,createPrompt } from "./graph.js";
 
 const envFile = existsSync(".env") ? ".env" : ".env.example";
 loadEnv({ path: envFile });
@@ -31,7 +30,7 @@ const medicalAgent = new BuiltInAgent({
   model,
   maxSteps: 6,
   temperature: 0.2,
-  prompt: createMedicalGraphPrompt(),
+  prompt: createPrompt(),
 });
 
 const runtime = new CopilotRuntime({
@@ -45,17 +44,35 @@ const runtime = new CopilotRuntime({
   },
 });
 
-// const copilotApp = createCopilotEndpoint({
-//   runtime,
-//   basePath: "/api/copilotkit",
-// });
-
 const singleRouteHandler = createCopilotRuntimeHandler({
   runtime,
   basePath: "/api/copilotkit",
   mode: "single-route",
   cors: true,
 });
+
+async function createSingleRouteRequest(request: Request) {
+  const payload = await request.clone().json();
+  const hasSingleRouteEnvelope = Boolean(payload?.method);
+  const body = hasSingleRouteEnvelope
+    ? payload
+    : {
+        method: "agent/run",
+        params: { agentId: "default" },
+        body: payload,
+      };
+
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  headers.delete("content-length");
+
+  return new Request(request.url, {
+    method: request.method,
+    headers,
+    body: JSON.stringify(body),
+    signal: request.signal,
+  });
+}
 
 const app = new Hono();
 
@@ -79,8 +96,10 @@ app.get("/health", (c) =>
   }),
 );
 
-app.post("/api/copilotkit", (c) => singleRouteHandler(c.req.raw));
-// app.route("/", copilotApp);
+app.post("/api/copilotkit", async (c) => {
+  const request = await createSingleRouteRequest(c.req.raw);
+  return singleRouteHandler(request);
+});
 
 serve({ fetch: app.fetch, port }, () => {
   console.log(`A2UI AG-UI backend: http://localhost:${port}`);

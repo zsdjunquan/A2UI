@@ -11,6 +11,7 @@ import {
 
 const props = defineProps<{
   args: BasicInfoToolArgs;
+  submitting?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -139,6 +140,7 @@ function validate() {
 }
 
 function submit() {
+  if (props.submitting) return;
   if (!validate()) return;
 
   emit("submit", {
@@ -217,7 +219,7 @@ function cancel() {
 
     <template #footer>
       <AButton @click="cancel">取消</AButton>
-      <AButton type="primary" :disabled="!visibleFields.length" @click="submit">{{ args.submitText || "提交" }}</AButton>
+      <AButton type="primary" :loading="submitting" :disabled="!visibleFields.length" @click="submit">{{ args.submitText || "提交" }}</AButton>
     </template>
   </AModal>
 </template>

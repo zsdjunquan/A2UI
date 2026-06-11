@@ -7,6 +7,7 @@ import type { AgentFormToolArgs } from "./frontendToolTypes";
 
 const props = defineProps<{
   args: AgentFormToolArgs;
+  submitting?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -31,6 +32,8 @@ const schema = computed<AgentFormSchema>(() => ({
 }));
 
 function submit(result: AgentFormSubmitResult) {
+  if (props.submitting) return;
+
   // DynamicAgentForm 已经产出标准 result，这里只负责关闭弹窗并向 AG-UI 回传。
   emit("submit", result);
   open.value = false;
@@ -50,6 +53,6 @@ function cancel() {
     :close-on-click-modal="false"
     @close="cancel"
   >
-    <DynamicAgentForm :schema="schema" @submit="submit" @skip="submit" />
+    <DynamicAgentForm :schema="schema" :submitting="submitting" @submit="submit" @skip="submit" />
   </ElDialog>
 </template>

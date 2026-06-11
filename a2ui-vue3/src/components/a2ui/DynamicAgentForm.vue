@@ -20,6 +20,7 @@ import type {
 
 const props = defineProps<{
   schema: AgentFormSchema;
+  submitting?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -145,11 +146,13 @@ function createResult(skipped = false): AgentFormSubmitResult {
 }
 
 function handleSubmit() {
+  if (props.submitting) return;
   if (!validate()) return;
   emit("submit", createResult());
 }
 
 function handleSkip() {
+  if (props.submitting) return;
   emit("skip", createResult(true));
 }
 </script>
@@ -218,6 +221,8 @@ function handleSkip() {
     <SubmitBar
       v-bind="schema.submit"
       :show-skip="schema.submit?.showSkip"
+      :loading="submitting || schema.submit?.loading"
+      :disabled="submitting || schema.submit?.disabled"
       @submit="handleSubmit"
       @skip="handleSkip"
     />

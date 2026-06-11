@@ -23,7 +23,8 @@ export default defineConfig({
     {
       name: "copilot-agent-adapter",
       configureServer(server) {
-        server.middlewares.use("/api/copilot-agent", async (req, res) => {
+        ///api/copilot-agent
+        server.middlewares.use("/api/copilotkit", async (req, res) => {
           if (req.method !== "POST") {
             res.statusCode = 405;
             res.end("Method Not Allowed");
@@ -40,8 +41,8 @@ export default defineConfig({
             try {
               const payload = JSON.parse(rawBody);
               const backendPayload = normalizeAgentPayload(payload);
-
-              const backendRes = await fetch("http://10.17.1.244:12307/api/agent/chat", {
+              //http://10.17.1.244:12307/api/agent/chat
+              const backendRes = await fetch("http://127.0.0.1:8080/api/copilotkit", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

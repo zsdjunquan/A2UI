@@ -4,6 +4,7 @@ import type {
   ActivityMessage,
   BaseEvent,
   Message,
+  ToolCall,
   ToolCallEndEvent,
   TextMessageContentEvent,
 } from "@ag-ui/core";
@@ -40,6 +41,8 @@ const knownIndicatorAliases: Record<string, string[]> = {
   hct: ["hct"],
 };
 
+const frontendToolNames = new Set(frontendTools.map((tool) => tool.name));
+
 type UnknownRecord = Record<string, unknown>;
 
 function createId(prefix: string) {
@@ -60,6 +63,10 @@ function isToolCallEndEvent(event: BaseEvent): event is ToolCallEndEvent {
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isFrontendToolCall(toolCall: ToolCall) {
+  return frontendToolNames.has(toolCall.function.name);
 }
 
 function normalizeIndicatorKey(value: unknown) {
@@ -179,6 +186,8 @@ export function useAguiAgent(runtimeUrl: string) {
   const pendingFrontendTool = ref<PendingFrontendTool | null>(null);
   const lastUserText = ref("");
   const submittedIndicatorResults = ref<Record<string, string>>({});
+  const isSubmittingFrontendTool = ref(false);
+  const submittedFrontendToolCallIds = new Set<string>();
   const agent = shallowRef(
     new HttpAgent({
       url: runtimeUrl,
@@ -352,26 +361,93 @@ export function useAguiAgent(runtimeUrl: string) {
     }
   }
 
+  function createToolResultMessage(toolCallId: string, result: unknown): Message {
+    return {
+      id: createId("tool"),
+      role: "tool",
+      toolCallId,
+      content: JSON.stringify(result),
+    };
+  }
+
+  function completeFrontendToolResults(pending: PendingFrontendTool, result: unknown) {
+    const explicitResultByToolCallId = new Map<string, unknown>([[pending.id, result]]);
+    const originalToolResultById = new Map<string, Message>();
+    const usedToolResultIds = new Set<string>();
+    const completedMessages: Message[] = [];
+
+    agent.value.messages.forEach((message) => {
+      if (message.role === "tool") {
+        originalToolResultById.set(message.toolCallId, message);
+      }
+    });
+
+    agent.value.messages.forEach((message) => {
+      if (message.role === "tool") {
+        return;
+      }
+
+      completedMessages.push(message);
+
+      if (message.role !== "assistant" || !message.toolCalls?.length) return;
+
+      message.toolCalls.forEach((toolCall) => {
+        const hasExplicitResult = explicitResultByToolCallId.has(toolCall.id);
+        const originalResult = originalToolResultById.get(toolCall.id);
+
+        if (!hasExplicitResult && originalResult) {
+          completedMessages.push(originalResult);
+          usedToolResultIds.add(toolCall.id);
+          return;
+        }
+
+        if (!hasExplicitResult && !isFrontendToolCall(toolCall)) return;
+
+        const toolResult = hasExplicitResult
+          ? explicitResultByToolCallId.get(toolCall.id)
+          : {
+              ok: false,
+              type: "frontendToolSkipped",
+              skipped: true,
+              reason: "superseded_by_another_frontend_tool",
+              toolName: toolCall.function.name,
+            };
+
+        completedMessages.push(createToolResultMessage(toolCall.id, toolResult));
+        usedToolResultIds.add(toolCall.id);
+      });
+    });
+
+    originalToolResultById.forEach((message, toolCallId) => {
+      if (!usedToolResultIds.has(toolCallId)) {
+        completedMessages.push(message);
+      }
+    });
+
+    agent.value.setMessages(completedMessages);
+  }
+
   async function submitFrontendToolResult(result: unknown) {
     const pending = pendingFrontendTool.value;
-    if (!pending) return;
+    if (!pending || isSubmittingFrontendTool.value || submittedFrontendToolCallIds.has(pending.id)) return;
 
     if (pending.name === "requestInspectionIndicatorsModal") {
       submittedIndicatorResults.value = updateSubmittedIndicatorResults(submittedIndicatorResults.value, result);
     }
 
+    isSubmittingFrontendTool.value = true;
+    submittedFrontendToolCallIds.add(pending.id);
+
+    completeFrontendToolResults(pending, result);
+
     pendingFrontendTool.value = null;
-
-    // frontend tool 的结果以 role=tool 写回 AG-UI 消息流，随后 continueAgent 让后端继续推理。
-    agent.value.addMessage({
-      id: createId("tool"),
-      role: "tool",
-      toolCallId: pending.id,
-      content: JSON.stringify(result),
-    });
-
     syncFromAgent(agent.value.messages);
-    await continueAgent();
+
+    try {
+      await continueAgent();
+    } finally {
+      isSubmittingFrontendTool.value = false;
+    }
   }
 
   function clearPendingFrontendTool() {
@@ -389,6 +465,7 @@ export function useAguiAgent(runtimeUrl: string) {
     error,
     canSend,
     pendingFrontendTool,
+    isSubmittingFrontendTool,
     sendText,
     sendWorkflowEvent,
     submitFrontendToolResult,
